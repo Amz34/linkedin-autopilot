@@ -1,96 +1,80 @@
-# LinkedIn Autopilot 🔥
+# LinkedIn Post Tool — IFMI / Luxe Wave
 
-**AI writes. You approve. It posts.**
+LinkedIn pe post karne ka local tool — personal profile aur company pages dono pe.
+Content manual likho ya AI (DeepSeek) se generate karo.
 
-A local-first LinkedIn posting tool that pairs **DeepSeek content generation** with the **official LinkedIn API** — no SaaS fees, no dashboards, no Replit session headaches. Your posts, on autopilot.
+## Setup (ek baar, 10 minute)
 
-![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)
-![AI](https://img.shields.io/badge/AI-DeepSeek%20V4%20Flash-purple.svg)
-![Python](https://img.shields.io/badge/Python-3.8%2B-important.svg)
-![Platform](https://img.shields.io/badge/Platform-Windows%20%2F%20macOS%20%2F%20Linux-lightgrey.svg)
-![No deps](https://img.shields.io/badge/Deps-Standard%20Library-brightgreen.svg)
+### 1. LinkedIn Developer App banao
+1. https://developer.linkedin.com → **My Apps** → **Create app**
+   - App name: `IFMI Content Tool`
+   - LinkedIn Page: apni koi bhi page (ya personal) — baad mein change hota hai
+   - Logo: koi bhi image
+2. **Products** tab → ye teeno add karo:
+   - ✅ **Sign In with LinkedIn using OpenID Connect**
+   - ✅ **Share on LinkedIn**
+   - ✅ **Community Management API**
+3. **Auth** tab → **Redirect URLs** mein ye daalo:
+   ```
+   http://localhost:8787/callback
+   ```
+4. **Credentials** tab → **Client ID** aur **Client Secret** copy karo
 
-## Why this exists
-
-Most "LinkedIn automation" guides end in a rabbit hole: OAuth scopes, disabled API products, Replit sessions that sleep, tokens that expire mid-demo. This repo is the opposite — **two boring Python files, zero dependencies, works every time**. The story of this tool is literally the journey: scope errors, disabled products, expired auth codes. All solved, all documented below.
-
-## How it works
-
-```mermaid
-flowchart LR
-    YOU["You (phone/PC)"] -->|"python post.py --ai"| AI["DeepSeek V4 Flash<br/>generates post"]
-    AI -->|"preview + approve"| YOU
-    YOU -->|"python post.py"| POST["LinkedIn API<br/>(official UGC)"]
-    POST --> PROFILE["Personal profile"]
-    POST -.-> PAGE["Company pages<br/>(needs Community Mgmt API)"]
-    style AI fill:#0B1F3F,color:#fff,stroke:#C9973B
-    style POST fill:#0B1F3F,color:#fff,stroke:#C9973B
+### 2. .env file banao
 ```
+copy .env.example .env
+```
+phir `.env` mein values daalo:
+- `LINKEDIN_CLIENT_ID` = Client ID
+- `LINKEDIN_CLIENT_SECRET` = Client Secret
+- `DEEPSEEK_API_KEY` = aapki DeepSeek key (AI mode ke liye)
 
-## Features
+### 3. Authorize karo
+```
+python auth.py
+```
+Browser khulega → LinkedIn pe **Allow** dabao → token save ho jayega.
 
-- **🤖 AI content engine** — DeepSeek writes engagement-ready posts (hook → value → CTA → hashtags), in English or Arabic
-- **✍️ Manual mode** — write it yourself, script just publishes
-- **👤 Personal + 🏢 Pages** — post to your profile or company pages you admin
-- **🔐 Token auto-refresh** — long-lived session, no re-login every time
-- **📦 Zero dependencies** — Python standard library only. No pip installs, no npm, no node_modules
-- **💸 Free forever** — LinkedIn API + DeepSeek pennies + your own machine
-
-## Quick start (10 minutes)
+## Use
 
 ```bash
-# 1. Get a LinkedIn Developer App
-#    developer.linkedin.com → Create app → add "Share on LinkedIn"
-#    Redirect URL: http://localhost:8787/callback
+# Manual post — personal profile
+python post.py --personal "Hello LinkedIn! ..."
 
-# 2. Configure
-cp .env.example .env        # add LINKEDIN_CLIENT_ID, LINKEDIN_CLIENT_SECRET, DEEPSEEK_API_KEY
+# Manual post with image — personal profile
+python post.py --personal "Hello LinkedIn! ..." --image photo.jpg
 
-# 3. Authorize once
-python auth.py              # browser opens → click Allow → token saved
+# Manual post — company page
+python post.py --page "Hello! ..."
 
-# 4. Post!
-python post.py --personal "Hello LinkedIn! 👋"
+# AI post — personal (topic optional)
+python post.py --ai --personal --topic "facility management trends"
+
+# AI post — company page
+python post.py --ai --page --topic "cleaning services KSA"
 ```
 
-## Usage
+## Image posts
 
 ```bash
-# Manual text → personal profile
-python post.py --personal "Your post text here"
+# Text + image (jpg/png/webp/gif) — personal profile
+python post.py --personal "Your text" --image banner.png
 
-# AI-generated → personal profile (topic optional)
-python post.py --ai --personal --topic "facility management trends KSA"
+# AI post + image
+python post.py --ai --personal --image banner.png
 
-# Manual text → company page
-python post.py --page --page-name ifmi "Your post text"
-
-# AI-generated → company page
-python post.py --ai --page --page-name luxewave
+# Apna banner banao (Python PIL):
+python make_banner.py   # -> banner.png
 ```
 
-## Company pages — one-time setup
-
-Posting to **company pages** requires the **Community Management API** product on your LinkedIn app (scopes: `w_organization_social`). It's self-serve on most accounts; if the request button is disabled, verify your phone number and retry. Add your page URNs to the `PAGES` dict in `post.py`:
-
-```python
-PAGES = {
-    "luxewave": "urn:li:organization:115792525",
-    "ifmi": "urn:li:organization:108790715",
-}
-```
-
-## Token lifecycle
-
-- Access tokens last **~60 days**, then re-run `python auth.py` (one click)
-- Token stored in `token.json` (git-ignored) — revoke anytime in LinkedIn settings
+## Files
+| File | Kaam |
+|---|---|
+| `auth.py` | LinkedIn login + token save/refresh |
+| `post.py` | Post karna (manual + AI) |
+| `.env` | Credentials (KABHI share mat karo) |
+| `token.json` | Access token (auto-refresh hota hai) |
 
 ## Security
-
-- `.env` + `token.json` are **git-ignored** — never commit credentials
-- Client secret stays on your machine; only the auth code flows through the browser
-- No third-party servers; your posts go straight from your machine to LinkedIn
-
-## License
-
-MIT — use it, fork it, ship it.
+- `.env` aur `token.json` **kabhi GitHub/chat mein mat bhejo**
+- Token LinkedIn ke andar revoke kar sakte ho (Settings → Data privacy → Permissions)
