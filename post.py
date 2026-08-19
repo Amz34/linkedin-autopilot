@@ -51,7 +51,7 @@ def load_env():
 
 def load_token():
     if not os.path.exists(TOKEN_PATH):
-        print("❌ token.json nahi mila. Pehle chalao:  python auth.py")
+        print("❌ token.json not found. Run first:  python auth.py")
         sys.exit(1)
     with open(TOKEN_PATH, encoding="utf-8") as f:
         return json.load(f)
@@ -69,9 +69,9 @@ def refresh_if_needed(token, env):
         return token, False
     refresh = token.get("refresh_token")
     if not refresh:
-        print("⚠️ Token expire hone wala hai aur refresh_token nahi hai. Dobara: python auth.py")
+        print("⚠️ Token is about to expire and no refresh_token exists. Re-run: python auth.py")
         return token, False
-    print("🔄 Token refresh ho raha hai...")
+    print("🔄 Refreshing token...")
     data = urlencode({
         "grant_type": "refresh_token",
         "refresh_token": refresh,
@@ -102,7 +102,7 @@ def generate_post(env, topic):
     """DeepSeek content generation."""
     key = env.get("DEEPSEEK_API_KEY", "")
     if not key:
-        print("❌ .env mein DEEPSEEK_API_KEY nahi hai — AI mode ke liye zaroori.")
+        print("❌ DEEPSEEK_API_KEY not found in .env — required for AI mode.")
         sys.exit(1)
     model = env.get("DEEPSEEK_MODEL", "deepseek-v4-flash")
     prompt = f"Write a LinkedIn post about: {topic}" if topic else "Write a LinkedIn post about facility management insights for the Saudi market."
@@ -139,13 +139,13 @@ def upload_image(token, author_urn, image_path):
     }
     status, data, _ = api_json("POST", "https://api.linkedin.com/rest/images?action=initializeUpload", headers, body)
     if status not in (200, 201):
-        print(f"❌ Image register fail ({status}): {json.dumps(data, ensure_ascii=False)[:400]}")
+        print(f"❌ Image registration failed ({status}): {json.dumps(data, ensure_ascii=False)[:400]}")
         return None
     value = data.get("value", {})
     upload_url = value.get("uploadUrl")
     image_urn = value.get("image")
     if not upload_url or not image_urn:
-        print("❌ Upload URL/image URN nahi mila:", json.dumps(data, ensure_ascii=False)[:400])
+        print("❌ Upload URL/image URN not found:", json.dumps(data, ensure_ascii=False)[:400])
         return None
     with open(image_path, "rb") as f:
         img_data = f.read()
@@ -158,9 +158,9 @@ def upload_image(token, author_urn, image_path):
     try:
         with urllib.request.urlopen(req) as resp:
             resp.read()
-        print("✅ Image upload ho gaya")
+        print("✅ Image uploaded")
     except urllib.error.HTTPError as e:
-        print(f"❌ Image upload fail ({e.code}): {e.read().decode('utf-8', 'replace')[:400]}")
+        print(f"❌ Image upload failed ({e.code}): {e.read().decode('utf-8', 'replace')[:400]}")
         return None
     return image_urn
 
@@ -169,12 +169,12 @@ def post_share(token, author_urn, text, image_path=None):
     """Publish a post via modern Posts API. If image_path given, upload image first."""
     media_category = "NONE"
     if image_path:
-        print(f"🖼️ Image upload ho raha hai ({os.path.basename(image_path)})...")
+        print(f"🖼️ Uploading image ({os.path.basename(image_path)})...")
         image_urn = upload_image(token, author_urn, image_path)
         if image_urn:
             media_category = "IMAGE"
         else:
-            print("⚠️ Image upload fail — bina image ke text post karta hoon.")
+            print("⚠️ Image upload failed — posting text without an image.")
 
     body = {
         "author": author_urn,
@@ -208,9 +208,9 @@ def post_share(token, author_urn, text, image_path=None):
             loc = resp_headers.get("Location", "")
             post_id = loc.rstrip("/").rsplit("/", 1)[-1].replace("urn:li:share:", "")
         print(f"✅ Post published! ID: {post_id}")
-        print(f"   LinkedIn pe dekh lo — post URN: urn:li:share:{post_id}")
+        print(f"   View on LinkedIn — post URN: urn:li:share:{post_id}")
         return True
-    print(f"❌ Post fail ({status}): {json.dumps(data, ensure_ascii=False)[:500]}")
+    print(f"❌ Post failed ({status}): {json.dumps(data, ensure_ascii=False)[:500]}")
     return False
 
 
@@ -227,7 +227,7 @@ def main():
     args = parser.parse_args()
 
     if not args.personal and not args.page:
-        print("❌ --personal ya --page choose karo.")
+        print("❌ Choose --personal or --page.")
         sys.exit(1)
 
     env = load_env()
@@ -243,11 +243,11 @@ def main():
     else:
         text = args.text.strip()
         if not text:
-            print("❌ Manual mode mein text do:  python post.py --personal \"text\"")
+            print("❌ Provide text in manual mode:  python post.py --personal \"text\"")
             sys.exit(1)
 
     if args.image and not os.path.exists(args.image):
-        print(f"❌ Image file nahi mili: {args.image}")
+        print(f"❌ Image file not found: {args.image}")
         sys.exit(1)
 
     if args.personal:
@@ -255,7 +255,7 @@ def main():
         headers = {"Authorization": f"Bearer {token['access_token']}"}
         status, info, _ = api_json("GET", "https://api.linkedin.com/v2/userinfo", headers)
         if status != 200 or "sub" not in info:
-            print("❌ Profile info nahi mili:", status, info)
+            print("❌ Profile info not fetched:", status, info)
             sys.exit(1)
         author = f"urn:li:person:{info['sub']}"
         print(f"👤 Posting to personal profile...")

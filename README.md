@@ -1,41 +1,55 @@
 # LinkedIn Post Tool — IFMI / Luxe Wave
 
-LinkedIn pe post karne ka local tool — personal profile aur company pages dono pe.
-Content manual likho ya AI (DeepSeek) se generate karo.
+Local CLI tool for posting to LinkedIn — personal profile and company pages.
+Write content manually or generate it with AI (DeepSeek).
 
-## Setup (ek baar, 10 minute)
+## Features
 
-### 1. LinkedIn Developer App banao
+- Post to your personal profile or company pages (IFMI, Luxe Wave)
+- Manual text or AI-generated content (DeepSeek, approval before publishing)
+- Image support (PNG/JPG/WebP/GIF) with automatic banner generation
+- Token auto-refresh (60-day access tokens)
+
+## Setup (one-time, ~10 minutes)
+
+### 1. Create a LinkedIn Developer App
+
 1. https://developer.linkedin.com → **My Apps** → **Create app**
    - App name: `IFMI Content Tool`
-   - LinkedIn Page: apni koi bhi page (ya personal) — baad mein change hota hai
-   - Logo: koi bhi image
-2. **Products** tab → ye teeno add karo:
+   - LinkedIn Page: any of your pages (or personal) — changeable later
+   - Logo: any image
+2. **Products** tab → add these three:
    - ✅ **Sign In with LinkedIn using OpenID Connect**
    - ✅ **Share on LinkedIn**
    - ✅ **Community Management API**
-3. **Auth** tab → **Redirect URLs** mein ye daalo:
+3. **Auth** tab → under **Redirect URLs**, add:
    ```
    http://localhost:8787/callback
    ```
-4. **Credentials** tab → **Client ID** aur **Client Secret** copy karo
+4. **Auth** tab → copy **Client ID** and **Client Secret**
 
-### 2. .env file banao
-```
-copy .env.example .env
-```
-phir `.env` mein values daalo:
-- `LINKEDIN_CLIENT_ID` = Client ID
-- `LINKEDIN_CLIENT_SECRET` = Client Secret
-- `DEEPSEEK_API_KEY` = aapki DeepSeek key (AI mode ke liye)
+### 2. Create the .env file
 
-### 3. Authorize karo
+```bash
+cp .env.example .env
 ```
+
+Then fill in the values:
+
+- `LINKEDIN_CLIENT_ID` = your Client ID
+- `LINKEDIN_CLIENT_SECRET` = your Client Secret
+- `DEEPSEEK_API_KEY` = your DeepSeek API key (for AI mode)
+
+### 3. Authorize
+
+```bash
 python auth.py
 ```
-Browser khulega → LinkedIn pe **Allow** dabao → token save ho jayega.
 
-## Use
+The browser opens → click **Allow** on LinkedIn → the token is saved
+automatically to `token.json`.
+
+## Usage
 
 ```bash
 # Manual post — personal profile
@@ -63,18 +77,28 @@ python post.py --personal "Your text" --image banner.png
 # AI post + image
 python post.py --ai --personal --image banner.png
 
-# Apna banner banao (Python PIL):
+# Generate your own banner (Python PIL):
 python make_banner.py   # -> banner.png
 ```
 
 ## Files
-| File | Kaam |
+
+| File | Purpose |
 |---|---|
-| `auth.py` | LinkedIn login + token save/refresh |
-| `post.py` | Post karna (manual + AI) |
-| `.env` | Credentials (KABHI share mat karo) |
-| `token.json` | Access token (auto-refresh hota hai) |
+| `auth.py` | LinkedIn OAuth login + token save/refresh |
+| `post.py` | Publish posts (manual + AI) |
+| `make_banner.py` | Generate a branded banner image |
+| `.env` | Credentials (NEVER share or commit) |
+| `token.json` | Access token (auto-refreshed) |
 
 ## Security
-- `.env` aur `token.json` **kabhi GitHub/chat mein mat bhejo**
-- Token LinkedIn ke andar revoke kar sakte ho (Settings → Data privacy → Permissions)
+
+- Never share or commit `.env` or `token.json`
+- Revoke the token anytime in LinkedIn (Settings → Data privacy → Permissions)
+
+## Content guidelines (built into the AI prompt)
+
+- Hook in the first line, value in the middle, question or CTA at the end
+- Short lines, 2-4 emojis max, relevant hashtags (3-5)
+- 100-220 words, no clickbait, no fake stats
+- No em dashes — use commas, colons, or periods

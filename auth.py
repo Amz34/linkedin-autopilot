@@ -41,9 +41,9 @@ class Handler(BaseHTTPRequestHandler):
             self.send_header("Content-Type", "text/html; charset=utf-8")
             self.end_headers()
             if code:
-                msg = "<h2 style='font-family:sans-serif'>✅ Success! Token saved. Aap ye window band kar sakte ho.</h2>"
+                msg = "<h2 style='font-family:sans-serif'>✅ Success! Token saved. You can close this window.</h2>"
             else:
-                msg = "<h2 style='font-family:sans-serif'>❌ No code received. Window band karke dobara try karo.</h2>"
+                msg = "<h2 style='font-family:sans-serif'>❌ No code received. Close this window and try again.</h2>"
             self.wfile.write(msg.encode("utf-8"))
         else:
             self.send_response(404)
@@ -70,8 +70,8 @@ def main():
     client_id = env.get("LINKEDIN_CLIENT_ID", "")
     client_secret = env.get("LINKEDIN_CLIENT_SECRET", "")
     if not client_id or not client_secret:
-        print("❌ .env mein LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET nahi hai.")
-        print("   Pehle .env file banao (README dekho) phir dobara chalao.")
+        print("❌ LINKEDIN_CLIENT_ID / LINKEDIN_CLIENT_SECRET not found in .env.")
+        print("   Create the .env file first (see README) and re-run.")
         sys.exit(1)
 
     auth_url = "https://www.linkedin.com/oauth/v2/authorization?" + urlencode({
@@ -82,8 +82,8 @@ def main():
         "state": "linkedin_tool_local",
     })
 
-    print("Browser khol raha hoon... LinkedIn pe authorize karo.")
-    print("Agar browser nahi khula toh ye URL khud kholo:\n")
+    print("Opening browser... authorize on LinkedIn.")
+    print("If the browser did not open, open this URL yourself:\n")
     print(f"   {auth_url}\n")
     webbrowser.open(auth_url)
 
@@ -93,7 +93,7 @@ def main():
     code = server.auth_code
 
     if not code:
-        print("❌ Authorization code nahi mila. Dobara try karo.")
+        print("❌ Authorization code not received. Try again.")
         sys.exit(1)
 
     # Exchange code -> access token + refresh token
@@ -107,7 +107,7 @@ def main():
     try:
         token = api_post("https://www.linkedin.com/oauth/v2/accessToken", data)
     except Exception as e:
-        print("❌ Token exchange fail:", e)
+        print("❌ Token exchange failed:", e)
         sys.exit(1)
 
     token["obtained_at"] = time.time()
@@ -122,7 +122,7 @@ def main():
         person_id = info.get("sub", "")
         print(f"👤 Logged in as: {info.get('name', '?')} (person URN: urn:li:person:{person_id})")
     except Exception as e:
-        print("⚠️ Profile info fetch fail (ignore if not needed):", e)
+        print("⚠️ Profile info fetch failed (ignore if not needed):", e)
 
     # Organizations user administers
     try:
@@ -140,11 +140,11 @@ def main():
             for o in orgs:
                 print(f"   - {o}")
         else:
-            print("🏢 Koi organization admin list nahi mili (page post ke liye Community Management API chahiye).")
+            print("🏢 No organization admin list found (Community Management API is needed for page posts).")
     except Exception as e:
-        print("⚠️ Organization list fetch fail:", e)
+        print("⚠️ Organization list fetch failed:", e)
 
-    print("\n🎉 Auth complete! Ab post.py use karo:")
+    print("\n🎉 Auth complete! Now use post.py:")
     print("   python post.py --personal \"text\"")
     print("   python post.py --page \"text\"")
     print("   python post.py --ai --personal")
