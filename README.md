@@ -1,11 +1,13 @@
-# LinkedIn Post Tool — IFMI / Luxe Wave
+# LinkedIn Autopilot
 
-Local CLI tool for posting to LinkedIn — personal profile and company pages.
-Write content manually or generate it with AI (DeepSeek).
+**LinkedIn on autopilot — AI drafts, you approve, it posts.**
+Profile + company Pages from your terminal. Local-first, zero SaaS fees.
+
+![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![License](https://img.shields.io/badge/License-MIT-green) ![Status](https://img.shields.io/badge/Status-Production--tested-success)
 
 ## Features
 
-- Post to your personal profile or company pages (IFMI, Luxe Wave)
+- Post to your personal profile or company Pages
 - Manual text or AI-generated content (DeepSeek, approval before publishing)
 - Image support (PNG/JPG/WebP/GIF) with automatic banner generation
 - Token auto-refresh (60-day access tokens)
