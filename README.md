@@ -104,3 +104,7 @@ python make_banner.py   # -> banner.png
 - Short lines, 2-4 emojis max, relevant hashtags (3-5)
 - 100-220 words, no clickbait, no fake stats
 - No em dashes — use commas, colons, or periods
+
+---
+
+Part of [my always-on agent stack](https://github.com/Amz34) · [Awesome Agent Infrastructure](https://github.com/Amz34/awesome-agent-infrastructure) (135 live-checked building blocks).
